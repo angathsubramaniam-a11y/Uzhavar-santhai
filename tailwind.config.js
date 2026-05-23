@@ -1,0 +1,67 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary:    "#2E7D32",
+        'primary-light': "#43A047",
+        secondary:  "#66BB6A",
+        cream:      "#FAFAF5",
+        'cream-dark': "#F0F4E8",
+        earth:      "#5D4037",
+        'earth-light': "#8D6E63",
+        sun:        "#F9A825",
+        'sun-light': "#FFD54F",
+        sky:        "#29B6F6",
+        forest:     "#1B5E20",
+        'forest-light': "#2E7D32",
+        leaf:       "#558B2F",
+        harvest:    "#E65100",
+        soil:       "#4E342E",
+        mist:       "#E8F5E9",
+      },
+      fontFamily: {
+        sans:   ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
+        tamil:  ['Noto Sans Tamil', 'sans-serif'],
+      },
+      backgroundImage: {
+        'grain': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E\")",
+      },
+      animation: {
+        'fade-in':      'fadeIn 0.6s ease-out both',
+        'slide-up':     'slideUp 0.7s ease-out both',
+        'slide-down':   'slideDown 0.3s ease-out',
+        'float':        'float 6s ease-in-out infinite',
+        'pulse-slow':   'pulse 4s cubic-bezier(0.4,0,0.6,1) infinite',
+        'shimmer':      'shimmer 2s linear infinite',
+        'leaf-sway':    'leafSway 3s ease-in-out infinite',
+        'bounce-sm':    'bounceSm 1s ease-in-out infinite',
+        'grow':         'grow 0.5s ease-out both',
+      },
+      keyframes: {
+        fadeIn:    { from: { opacity: '0' }, to: { opacity: '1' } },
+        slideUp:   { from: { opacity: '0', transform: 'translateY(30px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        slideDown: { from: { opacity: '0', transform: 'translateY(-10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        float:     { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
+        shimmer:   { from: { backgroundPosition: '-200% 0' }, to: { backgroundPosition: '200% 0' } },
+        leafSway:  { '0%,100%': { transform: 'rotate(-5deg)' }, '50%': { transform: 'rotate(5deg)' } },
+        bounceSm:  { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-4px)' } },
+        grow:      { from: { transform: 'scale(0.8)', opacity: '0' }, to: { transform: 'scale(1)', opacity: '1' } },
+      },
+      boxShadow: {
+        'glow':        '0 0 30px rgba(46,125,50,0.25)',
+        'glow-sun':    '0 0 30px rgba(249,168,37,0.35)',
+        'card':        '0 4px 24px rgba(0,0,0,0.07)',
+        'card-hover':  '0 12px 40px rgba(0,0,0,0.13)',
+        'inner-glow':  'inset 0 1px 0 rgba(255,255,255,0.4)',
+      },
+    },
+  },
+  plugins: [],
+}

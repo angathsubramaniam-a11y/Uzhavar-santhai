@@ -1,0 +1,13 @@
+export function ProductListingPage() { return <div className="p-10 text-center"><h1>ProductListingPage</h1></div>; }
+export function FarmerProfilePublic() { return <div className="p-10 text-center"><h1>FarmerProfilePublic</h1></div>; }
+export function CheckoutPage() { return <div className="p-10 text-center"><h1>CheckoutPage</h1></div>; }
+export function CustomerOrders() { return <div className="p-10 text-center"><h1>CustomerOrders</h1></div>; }
+export function CustomerProfile() { return <div className="p-10 text-center"><h1>CustomerProfile</h1></div>; }
+export function CustomerSupport() { return <div className="p-10 text-center"><h1>CustomerSupport</h1></div>; }
+export function FarmerProducts() { return <div className="p-10 text-center"><h1>FarmerProducts</h1></div>; }
+export function FarmerOrders() { return <div className="p-10 text-center"><h1>FarmerOrders</h1></div>; }
+export function FarmerProfile() { return <div className="p-10 text-center"><h1>FarmerProfile</h1></div>; }
+export function FarmerSupport() { return <div className="p-10 text-center"><h1>FarmerSupport</h1></div>; }
+export function AdminFarmerManagement() { return <div className="p-10 text-center"><h1>AdminFarmerManagement</h1></div>; }
+export function AdminCustomerManagement() { return <div className="p-10 text-center"><h1>AdminCustomerManagement</h1></div>; }
+export function AdminSupportManagement() { return <div className="p-10 text-center"><h1>AdminSupportManagement</h1></div>; }
