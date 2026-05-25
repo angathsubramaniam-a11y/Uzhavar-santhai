@@ -121,7 +121,7 @@ export default function CustomerLanding() {
             <span className="badge-organic text-sm mb-3">Categories</span>
             <h2 className="text-4xl font-bold text-forest mt-2">What's on your mind?</h2>
           </motion.div>
-          <div className="grid grid-cols-3 max-w-3xl mx-auto gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 max-w-3xl mx-auto gap-6">
             {[
               { name: 'Vegetables', icon: <GiBroccoli size={24} />, bg: 'bg-white', img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80' },
               { name: 'Fruits', icon: <LuApple size={24} />, bg: 'bg-white', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=300&q=80' },
