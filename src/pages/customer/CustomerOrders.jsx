@@ -86,7 +86,7 @@ export default function CustomerOrders() {
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total</div>
-                    <div className="font-medium text-gray-800">₹{order.total}</div>
+                    <div className="font-medium text-gray-800">₹{Number(order.total || 0).toFixed(2)}</div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Ship To</div>
@@ -275,7 +275,7 @@ export default function CustomerOrders() {
                         <div className="font-bold text-gray-800">{item.name}</div>
                         <div className="text-sm text-gray-500">Sold by: {item.farmerName || order.farmer || 'Local Farmer'}</div>
                         <div className="text-sm font-medium text-gray-900 mt-1">
-                          Qty: {item.qty || item.quantity} • ₹{item.price} / unit • Total: ₹{(item.price * getQtyNumber(item)).toFixed(2)}
+                          Qty: {item.qty || item.quantity} • ₹{item.price} / unit • Total: ₹{(Number(item.price || 0) * getQtyNumber(item)).toFixed(2)}
                         </div>
                       </div>
                       <div className="hidden sm:flex gap-2">
@@ -304,19 +304,19 @@ export default function CustomerOrders() {
                       <div className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 border-b border-emerald-100/40 pb-2">Receipt Breakdown</div>
                       
                       {(() => {
-                        const calculatedSubtotal = (Array.isArray(order.items) ? order.items : []).reduce((acc, item) => acc + (item.price * getQtyNumber(item)), 0);
-                        const subtotal = order.subtotal || calculatedSubtotal;
-                        const discount = order.discount || 0;
-                        const deliveryFee = order.deliveryFee || 0;
+                        const calculatedSubtotal = (Array.isArray(order.items) ? order.items : []).reduce((acc, item) => acc + (Number(item.price || 0) * getQtyNumber(item)), 0);
+                        const subtotal = Number(order.subtotal) || calculatedSubtotal;
+                        const discount = Number(order.discount) || 0;
+                        const deliveryFee = Number(order.deliveryFee) || 0;
                         const platformFee = 10.00;
                         const gst = parseFloat((subtotal * 0.05).toFixed(2));
-                        const grandTotal = order.total || (subtotal - discount + deliveryFee + platformFee + gst);
+                        const grandTotal = Number(order.total) || (subtotal - discount + deliveryFee + platformFee + gst);
 
                         return (
                           <>
                             <div className="flex justify-between text-sm text-gray-600">
                               <span>Items Subtotal</span>
-                              <span className="font-semibold text-gray-800">₹{subtotal.toFixed(2)}</span>
+                              <span className="font-semibold text-gray-800">₹{Number(subtotal).toFixed(2)}</span>
                             </div>
                             
                             {discount > 0 && (
@@ -342,8 +342,8 @@ export default function CustomerOrders() {
                             </div>
                             
                             <div className="pt-2.5 border-t border-emerald-100/60 flex justify-between items-center text-gray-900">
-                              <span className="font-black text-sm">Grand Total (Paid via {order.deliveryDetails?.paymentMethod || order.paymentMethod})</span>
-                              <span className="font-black text-xl text-primary">₹{grandTotal.toFixed(2)}</span>
+                              <span className="font-black text-sm">Grand Total (Paid via {order.deliveryDetails?.paymentMethod || order.paymentMethod || 'Cash on Delivery'})</span>
+                              <span className="font-black text-xl text-primary">₹{Number(grandTotal).toFixed(2)}</span>
                             </div>
                           </>
                         );

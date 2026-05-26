@@ -132,6 +132,7 @@ export default function CheckoutPage() {
     setPaymentError('');
     const activeDate = dates[selectedDate];
     const newOrder = {
+       
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       customerId: user?.id,
       customerName: user?.fullName || user?.name || 'Valued Customer',

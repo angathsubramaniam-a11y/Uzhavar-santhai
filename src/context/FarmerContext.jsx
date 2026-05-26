@@ -129,6 +129,10 @@ export function FarmerProvider({ children }) {
   }, []);
 
   const addFarmer = async (newFarmer) => {
+    // Optimistic local update
+    const tempFarmer = { ...newFarmer, id: newFarmer.id || Date.now() };
+    setFarmers(prev => [...prev, tempFarmer]);
+
     try {
       const { data, error } = await supabase
         .from('farmers')
@@ -163,14 +167,14 @@ export function FarmerProvider({ children }) {
           image: data[0].image,
           bankDetails: data[0].bank_details || null
         };
-        setFarmers(prev => [...prev, formatted]);
+        // Replace optimistic temp farmer with real one
+        setFarmers(prev => prev.map(f => f.id === tempFarmer.id ? formatted : f));
         return formatted;
       }
+      return tempFarmer;
     } catch (err) {
       console.error('Error adding farmer to Supabase:', err);
-      // Fallback local update
-      const tempFarmer = { ...newFarmer, id: newFarmer.id || Date.now() };
-      setFarmers(prev => [...prev, tempFarmer]);
+      // Already in local state
       return tempFarmer;
     }
   };

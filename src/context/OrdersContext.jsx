@@ -1,3 +1,4 @@
+ 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
@@ -448,23 +449,28 @@ export const OrdersProvider = ({ children }) => {
       const orderId = pendingOrderWithRider.id;
       const riderId = pendingOrderWithRider.deliveryInfo.riderId;
 
-      // If activeRequest is not set, or is for a different order/rider, initialize it
-      if (!activeRequest || activeRequest.orderId !== orderId || activeRequest.riderId !== riderId) {
-        setActiveRequest({
-          orderId,
-          riderId,
-          timeLeft: 30
-        });
-      }
+      setActiveRequest(prev => {
+        if (!prev || prev.orderId !== orderId || prev.riderId !== riderId) {
+          return { orderId, riderId, timeLeft: 30 };
+        }
+        return prev;
+      });
     } else {
-      // Clear activeRequest if there are no pending orders with assigned rider
-      if (activeRequest) {
-        setActiveRequest(null);
-      }
+      setActiveRequest(prev => (prev ? null : prev));
     }
-  }, [orders, activeRequest]);
+  }, [orders]);
 
   const addOrder = async (order) => {
+    // Optimistic local update
+    const tempOrder = { 
+      ...order, 
+      id: order.id || Date.now(), 
+      createdAt: new Date().toISOString(),
+      customerName: order.customerName || 'Valued Customer',
+      customer: order.customerName || 'Valued Customer'
+    };
+    setOrders(prev => [tempOrder, ...prev]);
+
     try {
       const discountVal = order.discount !== undefined ? order.discount : 0;
       const deliveryFeeVal = order.deliveryFee !== undefined ? order.deliveryFee : 0;
@@ -577,23 +583,13 @@ export const OrdersProvider = ({ children }) => {
         }
         // -------------------------------------
 
-        setOrders(prev => {
-          if (prev.some(o => o.id === formatted.id)) return prev;
-          return [formatted, ...prev];
-        });
+        setOrders(prev => prev.map(o => o.id === tempOrder.id ? formatted : o));
         return formatted;
       }
+      return tempOrder;
     } catch (err) {
       console.error('Error placing order in Supabase:', err);
-      // Fallback local update
-      const tempOrder = { 
-        ...order, 
-        id: order.id || Date.now(), 
-        createdAt: new Date().toISOString(),
-        customerName: order.customerName || 'Valued Customer',
-        customer: order.customerName || 'Valued Customer'
-      };
-      setOrders(prev => [tempOrder, ...prev]);
+      // Already added to local state
       return tempOrder;
     }
   };

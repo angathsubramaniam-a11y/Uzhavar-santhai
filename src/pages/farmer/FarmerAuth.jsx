@@ -1,3 +1,4 @@
+ 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,6 +19,16 @@ export default function FarmerAuth({ type }) {
   const navigate = useNavigate();
   const { user, login, logout } = useAuth();
   const { addFarmer, farmers } = useFarmers();
+
+  // ─── Shared state ────────────────────────────────────────────────────────────
+  const [formData, setFormData] = useState({
+    farmerName: '', farmName: '', phone: '', location: '', email: '', password: ''
+  });
+  const [error, setError]     = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // ─── REGISTRATION state ──────────────────────────────────────────────────────
+  const [regStep, setRegStep] = useState(STEP_FORM);
 
   // Redirect if already logged in and verified
   useEffect(() => {
@@ -51,16 +62,6 @@ export default function FarmerAuth({ type }) {
       navigate('/farmer/login', { replace: true });
     }
   }, [user, logout, navigate]);
-
-  // ─── Shared state ────────────────────────────────────────────────────────────
-  const [formData, setFormData] = useState({
-    farmerName: '', farmName: '', phone: '', location: '', email: '', password: ''
-  });
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
-
-  // ─── REGISTRATION state ──────────────────────────────────────────────────────
-  const [regStep, setRegStep] = useState(STEP_FORM);
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────
   const handleChange = (e) => {

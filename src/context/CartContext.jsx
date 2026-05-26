@@ -12,13 +12,13 @@ export function CartProvider({ children }) {
     localStorage.setItem('uzhavar_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product, qty = 1) => {
+  const addToCart = (product, qty = 10) => {
     setCartItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + qty } : item);
       }
-      return [...prev, { ...product, quantity: qty }];
+      return [...prev, { ...product, quantity: Math.max(10, qty) }];
     });
   };
 
@@ -30,7 +30,7 @@ export function CartProvider({ children }) {
     setCartItems(prev => prev.map(item => {
       if (item.id === productId) {
         const newQuantity = item.quantity + amount;
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+        return newQuantity >= 10 ? { ...item, quantity: newQuantity } : item;
       }
       return item;
     }));

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiLock, FiShield, FiArrowLeft } from 'react-icons/fi';
@@ -7,6 +7,8 @@ import { useAuth } from '../../context/AuthContext';
 export default function AdminAuth() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (user && user.role === 'admin') {
@@ -16,8 +18,12 @@ export default function AdminAuth() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login({ name: 'Super Admin', role: 'admin' });
-    navigate('/admin/dashboard');
+    if (password === '1234') {
+      login({ name: 'Super Admin', role: 'admin' });
+      navigate('/admin/dashboard');
+    } else {
+      setError('Incorrect admin password');
+    }
   };
 
   return (
@@ -51,10 +57,14 @@ export default function AdminAuth() {
               <input 
                 type="password" 
                 placeholder="Admin PIN or Password" 
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-700 border border-gray-600 text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" 
                 required 
               />
             </div>
+            
+            {error && <p className="text-red-400 text-xs font-bold px-2">{error}</p>}
             
             <button type="submit" className="w-full py-3.5 mt-4 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all">
               Verify Identity

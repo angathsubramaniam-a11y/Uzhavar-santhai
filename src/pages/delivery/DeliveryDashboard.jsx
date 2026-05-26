@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOrders } from '../../context/OrdersContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  FiMapPin, FiPhone, FiAlertCircle, FiCheck, FiX, 
-  FiPlay, FiNavigation, FiDollarSign, FiClock, FiActivity, FiUser,
+  FiAlertCircle, FiCheck, FiX, 
+  FiDollarSign, FiClock, FiActivity, FiUser,
   FiCamera, FiUploadCloud, FiBell 
 } from 'react-icons/fi';
 import { GiScooter } from 'react-icons/gi';
@@ -116,6 +116,7 @@ export default function DeliveryDashboard() {
         vehicleName = match[1].trim();
         vehiclePlate = match[2].trim();
       }
+       
       setProfileForm({
         name: currentRider.name || '',
         phone: currentRider.phone || '',
@@ -163,7 +164,6 @@ export default function DeliveryDashboard() {
   // Filter orders assigned to this rider
   const riderOrders = orders.filter(o => String(o.deliveryInfo?.riderId) === String(loggedRiderId));
   const activeOrders = riderOrders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled');
-  const completedOrders = riderOrders.filter(o => o.status === 'Delivered');
 
   // Filter payouts for this rider
   const riderPayouts = (payouts?.riders || []).filter(p => String(p.riderId) === String(loggedRiderId));

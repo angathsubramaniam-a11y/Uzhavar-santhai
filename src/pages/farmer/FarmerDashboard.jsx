@@ -42,6 +42,7 @@ export default function FarmerDashboard() {
     if (!user?.id) return;
     const currentDelivered = orders.filter(o => o.status === 'Delivered' && isOrderForFarmer(o, user?.id));
     
+     
     setLastDeliveredOrders(prev => {
       const newDelivered = currentDelivered.filter(o => !prev.includes(o.id));
       if (newDelivered.length > 0) {
