@@ -1,11 +1,21 @@
-import { useState } from 'react';
+  import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrdersContext';
-import { FiCheckCircle, FiMapPin, FiEdit2, FiTruck, FiCalendar, FiClock, FiArrowRight, FiZap, FiSunrise, FiMoon, FiCreditCard, FiCloud } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiEdit2, FiTruck, FiCalendar, FiClock, FiArrowRight, FiZap, FiSunrise, FiMoon, FiCreditCard, FiCloud, FiCrosshair } from 'react-icons/fi';
 import { LuLeaf } from 'react-icons/lu';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 const DELIVERY_TYPES = [
   { id: 'express', label: 'Express Delivery', sub: '30 mins', icon: <FiZap />, badge: 'Fastest ★', color: 'text-orange-500' },
@@ -64,6 +74,82 @@ export default function CheckoutPage() {
     line1: '14th Cross, Indiranagar, Coimbatore',
     line2: 'Tamil Nadu 641001'
   });
+  
+  // Custom Map Coordinate State
+  const [mapCenter, setMapCenter] = useState([11.0168, 76.9558]);
+  const [exactLocation, setExactLocation] = useState(null);
+  const [selectedAreaName, setSelectedAreaName] = useState('');
+  
+  // Custom Map Event Hook
+  function LocationPickerMarker() {
+    useMapEvents({
+      click(e) {
+        setMapCenter([e.latlng.lat, e.latlng.lng]);
+        setExactLocation([e.latlng.lat, e.latlng.lng]);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+      },
+    });
+
+    return (
+      <Marker position={mapCenter} draggable={true} 
+        eventHandlers={{
+          dragend: (e) => {
+            const marker = e.target;
+            const pos = marker.getLatLng();
+            setMapCenter([pos.lat, pos.lng]);
+            setExactLocation([pos.lat, pos.lng]);
+            reverseGeocode(pos.lat, pos.lng);
+          }
+        }} 
+      >
+        {selectedAreaName && (
+          <Popup className="font-bold text-gray-800">
+            Selected Area: <span className="text-primary">{selectedAreaName}</span>
+          </Popup>
+        )}
+      </Marker>
+    );
+  }
+
+  function FlyToLocation({ center }) {
+    const map = useMap();
+    useEffect(() => {
+      if (center) {
+        map.flyTo(center, 15);
+      }
+    }, [center, map]);
+    return null;
+  }
+
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if (data && data.address) {
+        const addr = data.address;
+        const area = addr.suburb || addr.neighbourhood || addr.road || addr.village || addr.county || 'Selected Location';
+        
+        setSelectedAreaName(area);
+        
+        // Auto-fill only the Area input as requested
+        const areaInput = document.getElementById('checkout-area-input');
+        if (areaInput) areaInput.value = area;
+      }
+    } catch (err) {
+      console.error("Reverse geocoding error:", err);
+    }
+  };
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude, longitude } = pos.coords;
+        setMapCenter([latitude, longitude]);
+        setExactLocation([latitude, longitude]);
+        reverseGeocode(latitude, longitude);
+      });
+    }
+  };
 
   const dates = generateDates();
 
@@ -88,6 +174,10 @@ export default function CheckoutPage() {
   if (distance > 2 && distance <= 5) deliveryCharge = 40;
   else if (distance > 5 && distance <= 10) deliveryCharge = 70;
   else if (distance > 10) deliveryCharge = 120;
+  
+  if (deliveryType === 'express') {
+    deliveryCharge += 10;
+  }
 
   const separateFee = uniqueFarmers.length * 40;
   const savingsAmount = isCombined ? Math.max(0, separateFee - deliveryCharge) : 0;
@@ -124,12 +214,57 @@ export default function CheckoutPage() {
     setIsEditingAddress(false);
   };
 
-  const handlePlaceOrder = () => {
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const handlePlaceOrder = async () => {
     if (!paymentMethod) {
       setPaymentError('Please select a payment method to proceed.');
       return;
     }
     setPaymentError('');
+    setIsGeocoding(true);
+
+    // Geocoding logic via Nominatim
+    let lat = 11.0168; // Default Coimbatore Lat
+    let lng = 76.9558; // Default Coimbatore Lng
+    try {
+      let data = [];
+      // 1. Try full address
+      let query = encodeURIComponent(`${address.line1}, ${address.line2}`);
+      let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+      data = await res.json();
+      
+      // 2. Fallback: Try just area and city
+      if (!data || data.length === 0) {
+        const area = address.line1.split(',')[0]; 
+        query = encodeURIComponent(`${area}, ${address.line2}`);
+        res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+        data = await res.json();
+      }
+
+      // 3. Fallback: Try just city/pincode (line 2)
+      if (!data || data.length === 0) {
+        query = encodeURIComponent(address.line2);
+        res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+        data = await res.json();
+      }
+
+      if (data && data.length > 0) {
+        lat = parseFloat(data[0].lat);
+        lng = parseFloat(data[0].lon);
+      } else {
+        console.warn("Geocoding failed on all fallbacks, using default coordinates");
+      }
+      
+      // Override with precise map marker if user placed it
+      if (exactLocation) {
+        lat = exactLocation[0];
+        lng = exactLocation[1];
+      }
+    } catch (err) {
+      console.error("Geocoding error:", err);
+    }
+
     const activeDate = dates[selectedDate];
     const newOrder = {
        
@@ -155,12 +290,15 @@ export default function CheckoutPage() {
         scheduledDate: `${activeDate.day}, ${activeDate.date} ${activeDate.month}`,
         scheduledSlot: deliveryType === 'express' ? `${eta} Minutes` : activeSlot?.label,
         address: address,
+        lat: lat,
+        lng: lng,
         instructions: instructions,
         tags: selectedTags,
         paymentMethod: paymentMethod,
         customerName: user?.fullName || user?.name || 'Valued Customer'
       }
     };
+    setIsGeocoding(false);
     addOrder(newOrder);
     setOrderPlaced(true);
     clearCart();
@@ -239,21 +377,41 @@ export default function CheckoutPage() {
                     <FiMapPin /> Delivery Address
                   </div>
                   {isEditingAddress ? (
-                    <form onSubmit={handleAddressSubmit} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <input name="type" placeholder="Address Type (Home/Office)" defaultValue={address.title.split(' — ')[0]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                        <input name="house" placeholder="Flat/House No" defaultValue={address.title.split(' — ')[1]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                    <div className="space-y-4">
+                      {/* Leaflet Picker Map */}
+                      <div className="relative w-full h-48 sm:h-64 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-inner z-0">
+                        <MapContainer center={mapCenter} zoom={13} style={{ width: '100%', height: '100%' }} zoomControl={false}>
+                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                          <FlyToLocation center={mapCenter} />
+                          <LocationPickerMarker />
+                        </MapContainer>
+                        
+                        <div className="absolute top-3 right-3 z-[1000]">
+                          <button type="button" onClick={handleLocateMe} className="bg-white text-primary border border-primary/20 px-3 py-2 rounded-xl shadow-md font-bold text-xs flex items-center gap-1 hover:bg-primary hover:text-white transition-colors">
+                            <FiCrosshair size={14} /> Locate Me
+                          </button>
+                        </div>
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider z-[1000] pointer-events-none">
+                          Drag marker or tap map to set location
+                        </div>
                       </div>
-                      <input name="area" placeholder="Area/Street" defaultValue={address.line1} required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                      <div className="grid grid-cols-2 gap-3">
-                        <input name="city" placeholder="City" defaultValue={address.line2.split(' ')[0]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                        <input name="pincode" placeholder="Pincode" defaultValue={address.line2.split(' ')[1]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                      </div>
-                      <div className="flex gap-3 mt-2">
-                        <button type="button" onClick={() => setIsEditingAddress(false)} className="flex-1 py-3.5 border border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition-colors">Cancel</button>
-                        <button type="submit" className="flex-1 py-3.5 bg-primary text-white rounded-xl font-bold shadow-md shadow-primary/20 hover:bg-forest transition-colors">Save Address</button>
-                      </div>
-                    </form>
+
+                      <form onSubmit={handleAddressSubmit} className="space-y-4 pt-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <input name="type" placeholder="Address Type (Home/Office)" defaultValue={address.title.split(' — ')[0]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                          <input name="house" placeholder="Flat/House No" defaultValue={address.title.split(' — ')[1]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                        </div>
+                        <input id="checkout-area-input" name="area" placeholder="Area/Street" defaultValue={address.line1} required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input id="checkout-city-input" name="city" placeholder="City" defaultValue={address.line2.split(' ')[0]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                          <input id="checkout-pincode-input" name="pincode" placeholder="Pincode" defaultValue={address.line2.split(' ')[1]} required className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                        </div>
+                        <div className="flex gap-3 mt-2">
+                          <button type="button" onClick={() => setIsEditingAddress(false)} className="flex-1 py-3.5 border border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50 transition-colors">Cancel</button>
+                          <button type="submit" className="flex-1 py-3.5 bg-primary text-white rounded-xl font-bold shadow-md shadow-primary/20 hover:bg-forest transition-colors">Save Address</button>
+                        </div>
+                      </form>
+                    </div>
                   ) : (
                     <div className="flex justify-between items-start">
                       <div>
@@ -563,9 +721,9 @@ export default function CheckoutPage() {
                 <span className="text-primary font-black text-3xl tracking-tight">₹{finalPrice.toFixed(2)}</span>
               </div>
 
-              <button onClick={() => step === 1 ? setStep(2) : handlePlaceOrder()}
-                className="w-full py-4.5 bg-gradient-to-r from-primary to-forest hover:shadow-xl text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/30 text-lg hover:-translate-y-0.5">
-                {step === 1 ? 'Proceed to Payment' : `Pay ₹${finalPrice.toFixed(2)}`} <FiArrowRight size={20} />
+              <button onClick={() => step === 1 ? setStep(2) : handlePlaceOrder()} disabled={isGeocoding}
+                className="w-full py-4.5 bg-gradient-to-r from-primary to-forest hover:shadow-xl text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/30 text-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed">
+                {step === 1 ? 'Proceed to Payment' : isGeocoding ? 'Locating...' : `Pay ₹${finalPrice.toFixed(2)}`} <FiArrowRight size={20} />
               </button>
 
               {/* Info badges */}

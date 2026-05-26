@@ -164,7 +164,7 @@ export default function CustomerLanding() {
             </div>
             <Link to="/products" className="btn-outline hidden md:flex">View All <FiArrowRight /></Link>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {farmers.filter(f => f.status === 'Verified').length === 0 ? (
               <div className="col-span-full text-center py-12 px-6 bg-white/60 backdrop-blur-md rounded-3xl border-2 border-dashed border-gray-200 shadow-sm max-w-xl mx-auto w-full">
                 <FiUser className="mx-auto text-5xl text-gray-400 mb-4" />
@@ -175,7 +175,7 @@ export default function CustomerLanding() {
                 </Link>
               </div>
             ) : (
-              farmers.filter(f => f.status === 'Verified').slice(0, 4).map((farmer, i) => (
+              farmers.filter(f => f.status === 'Verified').slice(0, 3).map((farmer, i) => (
                 <motion.div key={farmer.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
                   <Link to={`/farmer-profile/${farmer.id}`} className="farm-card block group">
                     <div className="relative h-52 overflow-hidden">

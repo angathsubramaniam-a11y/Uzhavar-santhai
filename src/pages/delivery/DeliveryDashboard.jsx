@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   FiAlertCircle, FiCheck, FiX, 
   FiDollarSign, FiClock, FiActivity, FiUser,
-  FiCamera, FiUploadCloud, FiBell 
+  FiCamera, FiUploadCloud, FiBell, FiMap, FiNavigation
 } from 'react-icons/fi';
 import { GiScooter } from 'react-icons/gi';
 import { Link, useNavigate } from 'react-router-dom';
@@ -534,12 +534,9 @@ export default function DeliveryDashboard() {
                         </div>
 
                         {/* Status Progression buttons */}
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
                           {[
                             { name: 'Packed', status: 'Packed' },
-                            { name: 'Pick Up', status: 'Picked Up' },
-                            { name: 'Transit', status: 'On The Way' },
-                            { name: 'Near Cust.', status: 'Near Customer' },
                             { name: 'Deliver', status: 'Delivered' }
                           ].map(step => {
                             const currentStatus = (order.status || '').toLowerCase();
@@ -550,10 +547,7 @@ export default function DeliveryDashboard() {
                                 key={step.status}
                                 disabled={
                                   (step.status === 'Packed' && currentStatus !== 'pending') ||
-                                  (step.status === 'Picked Up' && currentStatus !== 'packed') ||
-                                  (step.status === 'On The Way' && currentStatus !== 'picked up') ||
-                                  (step.status === 'Near Customer' && currentStatus !== 'on the way') ||
-                                  (step.status === 'Delivered' && currentStatus !== 'near customer')
+                                  (step.status === 'Delivered' && currentStatus !== 'packed')
                                 }
                                 onClick={() => advanceOrderStatus(order.id, step.status)}
                                 className={`py-2 px-1 rounded-xl text-[10px] font-black tracking-tight text-center transition-all ${
@@ -583,12 +577,19 @@ export default function DeliveryDashboard() {
                             <option value="Pending">Pending</option>
                             <option value="Confirmed">Confirmed</option>
                             <option value="Packed">Packed</option>
-                            <option value="Picked Up">Picked Up</option>
-                            <option value="On The Way">On The Way</option>
-                            <option value="Near Customer">Near Customer</option>
                             <option value="Delivered">Delivered</option>
                             <option value="Cancelled">Cancelled</option>
                           </select>
+                        </div>
+
+                        {/* Open Tracking Map Button */}
+                        <div className="pt-2">
+                          <button
+                            onClick={() => navigate(`/delivery/tracking/${order.id}`)}
+                            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow-sm transition-all"
+                          >
+                            <FiMap /> Open Tracking Map
+                          </button>
                         </div>
                       </div>
                     </div>

@@ -22,6 +22,7 @@ const FarmerDashboard = lazy(() => import('./pages/farmer/FarmerDashboard'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const DeliveryDashboard = lazy(() => import('./pages/delivery/DeliveryDashboard'));
 const DeliveryAuth = lazy(() => import('./pages/delivery/DeliveryAuth'));
+const DeliveryTracking = lazy(() => import('./pages/delivery/DeliveryTracking'));
 
 // Loading component for Suspense
 const PageLoader = () => (
@@ -106,6 +107,7 @@ function App() {
                 <Route path="/delivery/login" element={<DeliveryAuth type="login" />} />
                 <Route path="/delivery/signup" element={<DeliveryAuth type="signup" />} />
                 <Route path="/delivery/dashboard" element={<ProtectedRoute role="delivery"><DeliveryDashboard /></ProtectedRoute>} />
+                <Route path="/delivery/tracking/:id" element={<ProtectedRoute role="delivery"><DeliveryTracking /></ProtectedRoute>} />
 
                 {/* CATCH ALL */}
                 <Route path="*" element={<CustomerLanding />} />

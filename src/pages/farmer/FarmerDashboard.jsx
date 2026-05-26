@@ -201,10 +201,10 @@ export default function FarmerDashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen pb-20 md:pb-0">
         {/* Top Header */}
-        <header className="bg-white shadow-sm px-8 py-4 flex justify-between items-center sticky top-0 z-10">
-          <h1 className="text-xl font-bold text-forest">Farmer Portal</h1>
+        <header className="bg-white shadow-sm px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+          <h1 className="text-lg md:text-xl font-bold text-forest">Farmer Portal</h1>
           <div className="flex items-center gap-6">
             <div className="relative">
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative text-earth hover:text-primary">

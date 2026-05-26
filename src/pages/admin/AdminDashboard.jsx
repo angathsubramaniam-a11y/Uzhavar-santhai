@@ -1,7 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiUsers, FiShoppingBag, FiActivity, FiSettings, FiLogOut, FiMessageSquare, FiCheckCircle, FiDollarSign, FiTruck, FiUserCheck } from 'react-icons/fi';
+import { FiUsers, FiShoppingBag, FiActivity, FiSettings, FiLogOut, FiMessageSquare, FiCheckCircle, FiDollarSign, FiTruck, FiUserCheck, FiMenu, FiX } from 'react-icons/fi';
 import { useFarmers } from '../../context/FarmerContext';
 import { useAuth } from '../../context/AuthContext';
 import { useProducts } from '../../context/ProductContext';
@@ -126,6 +126,7 @@ export default function AdminDashboard() {
   const location = useLocation();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const handleExit = () => { logout(); navigate('/'); };
   const navLinks = [
     { path: '/admin/dashboard', name: 'Overview', icon: <FiActivity /> },
@@ -162,7 +163,47 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      <div className="flex-1 md:ml-64 p-8">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-gray-900 text-white flex items-center justify-between p-4 sticky top-0 z-30 shadow-md">
+        <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">
+          Uzhavar Admin
+        </div>
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-gray-800 rounded-lg text-white">
+          {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }} 
+            animate={{ opacity: 1, height: 'auto' }} 
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden fixed top-[72px] left-0 w-full bg-gray-900 z-20 border-b border-gray-800 shadow-xl overflow-hidden"
+          >
+            <nav className="flex-1 p-4 space-y-1">
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.name} 
+                  to={link.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-bold ${location.pathname === link.path || (link.path === '/admin/dashboard' && location.pathname === '/admin') ? 'bg-primary text-white shadow-md' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+                >
+                  {link.icon} {link.name}
+                </Link>
+              ))}
+              <div className="pt-2 mt-2 border-t border-gray-800">
+                <button onClick={handleExit} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-gray-800 font-bold transition-colors">
+                  <FiLogOut /> Exit Panel
+                </button>
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 md:ml-64 p-4 md:p-8">
         <Suspense fallback={<AdminLoader />}>
           <Routes>
             <Route path="/" element={<AdminOverview />} />
